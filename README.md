@@ -28,7 +28,7 @@ Run from PowerShell (not Command Prompt):
 
 ```powershell
 cd C:\git\tv-renamer
-.\TVRenamer.ps1 "D:\Downloads\TV" "D:\Media\TV Series" -DryRun   # preview only, nothing is moved
+.\TVRenamer.ps1 "D:\Downloads\TV" "D:\Media\TV Series" -WhatIf   # preview only, nothing is moved
 .\TVRenamer.ps1 "D:\Downloads\TV" "D:\Media\TV Series"           # asks for Y before moving anything
 ```
 
@@ -36,7 +36,8 @@ cd C:\git\tv-renamer
 | --- | --- |
 | `-Source` (1st) | Folder of new downloads to process (searched recursively) |
 | `-Destination` (2nd) | Library root; files are moved to `<Show>\Season NN\` under here |
-| `-DryRun` | Preview the renames without moving anything |
+| `-WhatIf` | Preview the renames without moving anything |
+| `-Confirm` | Ask before each individual move, as well as the overall Y prompt |
 
 `-Source` and `-Destination` are required; if you leave them out, PowerShell prompts for them. Both folders must already exist. Network paths such as `\\nas\video\TV Series` work too.
 

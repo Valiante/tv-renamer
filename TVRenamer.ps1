@@ -1,7 +1,7 @@
 # TVRenamer.ps1
 
 # Queries api.themoviedb.org for TV show ID then individual episode titles
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess)]
 param(
     # Folder containing new downloads to process (searched recursively)
     [Parameter(Mandatory, Position = 0)]
@@ -9,11 +9,11 @@ param(
 
     # Library root; files are moved to <Show>\Season NN\ under here
     [Parameter(Mandatory, Position = 1)]
-    [string]$Destination,
-
-    # Show what would happen without prompting or moving anything
-    [switch]$DryRun
+    [string]$Destination
 )
+
+# -WhatIf previews the renames without prompting or moving anything
+$Preview = [bool]$WhatIfPreference
 
 if ("SecurityProtocol" -in [Net.ServicePointManager].GetProperties().Name) {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -249,7 +249,7 @@ $tvFiles = Get-ChildItem -LiteralPath $ToBeProcessed -Recurse -File -ErrorAction
 
 if (-not $tvFiles) {
     Write-Warning "No files over 100MB found under $ToBeProcessed"
-    if (-not $DryRun) { pause }
+    if (-not $Preview) { pause }
     return
 }
 
@@ -391,20 +391,23 @@ if ($skipped.Count -gt 0) {
 
 if ($plannedActions.Count -eq 0) {
     Write-Warning "No valid rename operations were prepared."
-    if (-not $DryRun) { pause }
+    if (-not $Preview) { pause }
     return
 }
 
-if ($DryRun) {
-    "`nDry run - nothing was moved."
+if ($Preview) {
+    "`nWhatIf - nothing was moved."
     return
 }
 
 $response = Read-Host "`nDoes this look okay? Type Y to proceed, anything else to cancel"
 if ($response -match '^[Yy]$') {
     foreach ($action in $plannedActions) {
+        # Lets -Confirm ask before each individual move
+        if (-not $PSCmdlet.ShouldProcess($action.OriginalPath, "Move to $($action.NewPath)")) { continue }
+
         if (!(Test-Path -LiteralPath $action.TargetFolder)) {
-            New-Item $action.TargetFolder -ItemType Directory -Force | Out-Null
+            New-Item $action.TargetFolder -ItemType Directory -Force -Confirm:$false | Out-Null
         }
         try {
             $action.FileObject.MoveTo($action.NewPath)
