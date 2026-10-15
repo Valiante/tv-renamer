@@ -63,6 +63,24 @@ Files are skipped, with the reason shown in the summary, when:
 - the filename's episode title doesn't match anything in that season
 - the target file already exists, or two files would get the same name
 
+## Python version (Home Assistant)
+
+`tv_renamer.py` is a standard-library-only port with the same matching logic, so it runs inside Home Assistant (or anywhere with Python 3.9+) with no PC involved:
+
+```
+python3 tv_renamer.py "/media/DS1520_Video/_ToBeProcessed/TV Series" "/media/DS1520_Video/TV Series" --secrets /config/secrets.yaml           # preview
+python3 tv_renamer.py "/media/DS1520_Video/_ToBeProcessed/TV Series" "/media/DS1520_Video/TV Series" --secrets /config/secrets.yaml --apply   # move
+```
+
+| Option | Purpose |
+| --- | --- |
+| `--apply` | Move the files (default is a preview, like `-WhatIf`) |
+| `--secrets` | YAML file with a `tmdb_api_key:` line; otherwise `TMDB_API_KEY` from the environment |
+| `--time-budget N` | Stop checking new files after N seconds and say how many are left (HA kills shell commands at 60s) |
+| `--max-lines N` | Cap on files listed in the summary (default 25) |
+
+In Home Assistant it lives at `/config/custom_templates/tv_renamer/tv_renamer.py`, run by `shell_command.tv_renamer_preview` and `shell_command.tv_renamer_apply`. The `input_button.tv_renamer` helper triggers a preview, which arrives as a phone notification with a **Move them** button that runs it for real. The NAS share is mounted in HA as network storage named `DS1520_Video`.
+
 ## Updating
 
 After changes are pushed to GitHub:
